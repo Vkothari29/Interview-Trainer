@@ -5,3 +5,40 @@ __pycache__/
 data/chroma_db/
 data/flask_sessions/
 app/static/uploads/
+
+# Byte-compiled / optimized / CPython files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Environment variables & secrets (CRITICAL: keeps API keys private)
+.env
+.env.local
+.env.*.local
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Vector stores, local databases, and temporary data
+data/
+knowledge_base/
+*.db
+*.sqlite3
+
+# IDE and Editor configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
