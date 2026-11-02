@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Start Your Interview — Interview Trainer{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="hero-section text-center mb-5">
+  <span class="hero-badge">✦ AI Interview Coach</span>
+  <h1 class="hero-title">Ace Your Next Interview</h1>
+  <p class="hero-sub">Personalized mock interviews powered by RAG — tailored to your role, experience, and resume.</p>
+</div>
+
+<div class="row g-4 justify-content-center">
+
+  <!-- ── Profile Form ── -->
+  <div class="col-12 col-lg-7">
+    <div class="card-panel">
+      <div class="panel-label">Your Profile</div>
+
+      <!-- Resume upload (AJAX) -->
+      <div class="resume-drop mb-4" id="resumeDrop">
+        <i class="bi bi-cloud-upload fs-3 text-primary mb-2 d-block"></i>
+        <div class="fw-semibold">Upload your resume <span class="text-muted fw-normal">(optional)</span></div>
+        <div class="text-muted small mt-1">PDF, DOCX, or TXT — powers project-specific questions</div>
+        <input type="file" id="resumeInput" accept=".pdf,.docx,.doc,.txt" class="d-none"/>
+        <button class="btn btn-sm btn-outline-primary mt-3 rounded-pill" onclick="document.getElementById('resumeInput').click()">
+          Browse File
+        </button>
+        <div id="resumeStatus" class="mt-2 small"></div>
+      </div>
+
+      <form method="POST" action="{{ url_for('main.generate_questions') }}" id="profileForm">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Full Name</label>
+          <input type="text" name="name" class="form-control form-control-lg" placeholder="e.g. Alex Johnson" required/>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Target Job Role / Title</label>
+          <input type="text" name="role" class="form-control form-control-lg"
+                 placeholder="e.g. Software Engineer, Data Scientist, Product Manager" required/>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Experience Level</label>
+          <select name="level" class="form-select form-select-lg">
+            <option>Fresher</option>
+            <option>Junior</option>
+            <option selected>Mid-level</option>
+            <option>Senior</option>
+            <option>Lead</option>
+          </select>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-6">
+            <label class="form-label fw-semibold">Focus Area</label>
+            <select name="focus" class="form-select">
+              <option value="">All</option>
+              <option>Technical</option>
+              <option>Behavioral</option>
+              <option>System Design</option>
+              <option>HR</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label fw-semibold">Difficulty</label>
+            <select name="difficulty" class="form-select">
+              <option value="">Mixed</option>
+              <option>Easy</option>
+              <option>Medium</option>
+              <option>Hard</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary-grad w-100 btn-lg" id="startBtn">
+          <span id="startBtnText"><i class="bi bi-play-fill me-2"></i>Generate My Interview Questions</span>
+          <span id="startBtnSpinner" class="d-none">
+            <span class="spinner-border spinner-border-sm me-2"></span>Preparing questions…
+          </span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Right panel ── -->
+  <div class="col-12 col-lg-4">
+
+    <div class="card-panel mb-3">
+      <div class="panel-label">What You'll Get</div>
+      <div class="chip-grid">
+        <span class="chip">✅ 10 tailored questions</span>
+        <span class="chip">📊 Instant scoring</span>
+        <span class="chip">⭐ STAR coaching</span>
+        <span class="chip">💡 Model answers</span>
+        <span class="chip">🔁 Follow-up questions</span>
+        <span class="chip">📈 Readiness score</span>
+        <span class="chip">📥 Export report</span>
+      </div>
+    </div>
+
+    <div class="card-panel mb-3">
+      <div class="panel-label">Pro Tips</div>
+      <div class="step-row"><div class="step-num">💡</div><div class="step-text">Be specific — <em>"Backend Engineer"</em> beats just <em>"Engineer"</em></div></div>
+      <div class="step-row"><div class="step-num">📄</div><div class="step-text">Upload your resume to unlock project-specific questions</div></div>
+      <div class="step-row"><div class="step-num">🎯</div><div class="step-text">Choose <em>Mixed</em> difficulty for a realistic interview feel</div></div>
+      <div class="step-row"><div class="step-num">🌟</div><div class="step-text">Answer as you would in a real interview — don't self-censor</div></div>
+    </div>
+
+    <div class="card-panel">
+      <div class="panel-label">How It Works</div>
+      <div class="step-row"><div class="step-num step-num-num">1</div><div class="step-text"><strong>Set up profile</strong><br>Add your role, level & optional resume</div></div>
+      <div class="step-row"><div class="step-num step-num-num">2</div><div class="step-text"><strong>Start interview</strong><br>Answer questions one by one</div></div>
+      <div class="step-row"><div class="step-num step-num-num">3</div><div class="step-text"><strong>Get feedback</strong><br>STAR coaching + instant scores</div></div>
+      <div class="step-row"><div class="step-num step-num-num">4</div><div class="step-text"><strong>Review results</strong><br>Readiness score & action plan</div></div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// ── Resume AJAX upload ──
+const input = document.getElementById('resumeInput');
+const status = document.getElementById('resumeStatus');
+
+input.addEventListener('change', async () => {
+  const file = input.files[0];
+  if (!file) return;
+  status.innerHTML = '<span class="text-primary"><span class="spinner-border spinner-border-sm me-1"></span>Parsing resume…</span>';
+
+  const fd = new FormData();
+  fd.append('resume', file);
+
+  try {
+    const res = await fetch('{{ url_for("main.upload_resume") }}', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.success) {
+      status.innerHTML = `<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i><strong>${file.name}</strong> parsed successfully</span>`;
+      document.getElementById('resumeDrop').classList.add('resume-drop-success');
+    } else {
+      status.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle me-1"></i>${data.error}</span>`;
+    }
+  } catch(e) {
+    status.innerHTML = '<span class="text-danger">Upload failed. Continuing without resume.</span>';
+  }
+});
+
+// ── Show spinner on form submit ──
+document.getElementById('profileForm').addEventListener('submit', () => {
+  document.getElementById('startBtnText').classList.add('d-none');
+  document.getElementById('startBtnSpinner').classList.remove('d-none');
+});
+
+// ── Drag & drop ──
+const drop = document.getElementById('resumeDrop');
+['dragover','dragenter'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('resume-drop-hover'); }));
+['dragleave','drop'].forEach(e => drop.addEventListener(e, () => drop.classList.remove('resume-drop-hover')));
+drop.addEventListener('drop', ev => {
+  ev.preventDefault();
+  const f = ev.dataTransfer.files[0];
+  if (f) { input.files = ev.dataTransfer.files; input.dispatchEvent(new Event('change')); }
+});
+</script>
+{% endblock %}

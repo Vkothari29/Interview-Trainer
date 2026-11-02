@@ -1,0 +1,28 @@
+# Web framework
+flask>=3.0.0
+flask-cors>=4.0.0
+flask-session>=0.8.0
+
+# AI / LLM
+langchain>=0.2.0
+langchain-groq>=0.1.0
+langchain-google-genai>=1.0.0
+langgraph>=0.1.0
+langchain-community>=0.2.0
+langchain-core>=0.2.0
+
+# RAG / Vector store
+chromadb>=0.5.0
+sentence-transformers>=3.0.0
+
+# Optional Streamlit UI (the Flask app in app/ does not need this)
+streamlit>=1.30.0
+
+# Resume parsing
+pypdf>=4.0.0
+python-docx>=1.1.0
+
+# Utilities
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+werkzeug>=3.0.0

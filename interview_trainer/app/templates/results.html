@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}Your Results — Interview Trainer{% endblock %}
+
+{% block content %}
+{% set score = assessment.get('readiness_score', 0) %}
+{% set grade = 'Excellent' if score >= 80 else 'Good' if score >= 65 else 'Needs Practice' if score >= 50 else 'Keep Going' %}
+{% set grade_cls = 'success' if score >= 80 else 'primary' if score >= 65 else 'warning' if score >= 50 else 'danger' %}
+
+<!-- Hero -->
+<div class="results-hero text-center mb-5">
+  <div class="results-trophy">🎉</div>
+  <h1 class="hero-title" style="font-size:2rem;">Interview Complete!</h1>
+  <p class="text-muted">{{ profile.name }} &nbsp;·&nbsp; {{ profile.level }} {{ profile.role }}</p>
+</div>
+
+<!-- Score cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-value">{{ score }}<span class="stat-unit">/100</span></div>
+      <div class="stat-label">Readiness Score</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-value">{{ qa_pairs|length }}</div>
+      <div class="stat-label">Questions Answered</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      {% set avg = (qa_pairs | map(attribute='score') | map(attribute='overall') | list | sum / (qa_pairs|length)) | round(0) | int if qa_pairs else 0 %}
+      <div class="stat-value">{{ avg }}<span class="stat-unit">/100</span></div>
+      <div class="stat-label">Avg Answer Score</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-value text-{{ grade_cls }}">{{ grade }}</div>
+      <div class="stat-label">Assessment</div>
+    </div>
+  </div>
+</div>
+
+<!-- Score bar -->
+<div class="mb-5">
+  <div class="d-flex justify-content-between mb-1 small text-muted">
+    <span class="fw-semibold">OVERALL READINESS</span>
+    <span>{{ score }}%</span>
+  </div>
+  <div class="progress" style="height:10px;border-radius:8px;">
+    <div class="progress-bar bg-{{ grade_cls }}" style="width:{{ score }}%;border-radius:8px;"></div>
+  </div>
+</div>
+
+<div class="divider mb-4"></div>
+
+<!-- Strengths / Improvements / Next steps -->
+<div class="row g-4 mb-5">
+  <div class="col-12 col-md-4">
+    <div class="card-panel h-100">
+      <div class="panel-label text-success">✅ Top Strengths</div>
+      {% for s in assessment.get('strengths', []) %}
+      <div class="step-row">
+        <div class="step-num" style="background:linear-gradient(135deg,#22c55e,#16a34a);flex-shrink:0;">✓</div>
+        <div class="step-text">{{ s }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="col-12 col-md-4">
+    <div class="card-panel h-100">
+      <div class="panel-label" style="color:#f59e0b;">📈 Priority Improvements</div>
+      {% for w in assessment.get('weak_areas', []) %}
+      <div class="step-row">
+        <div class="step-num" style="background:linear-gradient(135deg,#f59e0b,#d97706);flex-shrink:0;">↑</div>
+        <div class="step-text">{{ w }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="col-12 col-md-4">
+    <div class="card-panel h-100">
+      <div class="panel-label" style="color:#6366f1;">🚀 Next Steps</div>
+      {% for n in assessment.get('next_steps', []) %}
+      <div class="step-row">
+        <div class="step-num step-num-num" style="flex-shrink:0;">{{ loop.index }}</div>
+        <div class="step-text">{{ n }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Summary -->
+<div class="card-panel mb-5">
+  <div class="panel-label">Summary</div>
+  <p class="mb-0 lh-lg text-muted fst-italic">{{ assessment.get('summary', '') }}</p>
+</div>
+
+<div class="divider mb-4"></div>
+
+<!-- Q&A Breakdown -->
+<h5 class="fw-bold mb-3"><i class="bi bi-list-check me-2 text-primary"></i>Question-by-Question Breakdown</h5>
+<div class="accordion mb-5" id="qaAccordion">
+{% for pair in qa_pairs %}
+{% set s = pair.score %}
+{% set sc = s.overall %}
+<div class="accordion-item border rounded-3 mb-2">
+  <h2 class="accordion-header">
+    <button class="accordion-button collapsed rounded-3 fw-semibold" type="button"
+            data-bs-toggle="collapse" data-bs-target="#qa{{ loop.index }}">
+      <span class="me-3">
+        {% if sc >= 75 %}🟢{% elif sc >= 55 %}🟡{% else %}🔴{% endif %}
+      </span>
+      Q{{ loop.index }} — {{ pair.question[:70] }}…
+      <span class="ms-auto me-3 score-pill {% if sc >= 75 %}score-good{% elif sc >= 55 %}score-mid{% else %}score-low{% endif %} ms-3">
+        {{ sc }}/100
+      </span>
+    </button>
+  </h2>
+  <div id="qa{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#qaAccordion">
+    <div class="accordion-body">
+      <p class="text-muted small mb-3"><strong>Your answer:</strong> {{ pair.answer }}</p>
+      <div class="row g-2 mb-3">
+        {% for label, val in [('Relevance', s.relevance), ('Structure', s.structure_clarity), ('Depth', s.depth_accuracy), ('STAR', s.star_usage), ('Confidence', s.confidence_indicators)] %}
+        <div class="col-6 col-md-2">
+          <div class="score-mini-card">
+            <div class="score-mini-val">{{ val }}/10</div>
+            <div class="score-mini-label">{{ label }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-6"><strong class="small text-success">Strengths:</strong> <span class="small">{{ s.strengths | join(' · ') }}</span></div>
+        <div class="col-6"><strong class="small text-warning">Improve:</strong> <span class="small">{{ s.improvements | join(' · ') }}</span></div>
+      </div>
+      <div class="tip-box">
+        <i class="bi bi-lightbulb-fill me-2 text-warning"></i>{{ s.model_tip }}
+      </div>
+      <div class="mt-2 text-end">
+        <a href="{{ url_for('main.feedback', q_index=loop.index0) }}" class="btn btn-sm btn-outline-primary rounded-pill">
+          Full Feedback <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+</div>
+
+<!-- Actions -->
+<div class="row g-3">
+  <div class="col-12 col-md-6">
+    <a href="{{ url_for('main.download_report') }}" class="btn btn-outline-primary w-100 btn-lg">
+      <i class="bi bi-download me-2"></i>Download Prep Report (Markdown)
+    </a>
+  </div>
+  <div class="col-12 col-md-6">
+    <a href="{{ url_for('main.reset') }}" class="btn btn-primary-grad w-100 btn-lg">
+      <i class="bi bi-arrow-clockwise me-2"></i>Practice Again
+    </a>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Register enumerate filter polyfill for Jinja
+// (handled server-side via template filter — see below)
+</script>
+{% endblock %}

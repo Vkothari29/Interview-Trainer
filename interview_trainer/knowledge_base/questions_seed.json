@@ -1,0 +1,189 @@
+[
+  {
+    "id": "tech_001",
+    "category": "Technical",
+    "role": "Software Engineer",
+    "difficulty": "Medium",
+    "level": ["Junior", "Mid-level"],
+    "question": "Explain the difference between a stack and a queue. When would you use each?",
+    "model_answer": "A stack is a LIFO (Last In, First Out) data structure — the last element added is the first to be removed, like a stack of plates. A queue is FIFO (First In, First Out) — the first element added is the first removed, like a line at a store. Use a stack for: undo/redo operations, function call management (call stack), DFS traversal. Use a queue for: BFS traversal, task scheduling, print queues, message brokers.",
+    "tips": ["Mention real-world system examples, not just theory.", "Contrast time complexity if asked a follow-up.", "Draw on any personal project experience if relevant."],
+    "tags": ["data structures", "algorithms", "fundamentals"]
+  },
+  {
+    "id": "tech_002",
+    "category": "Technical",
+    "role": "Software Engineer",
+    "difficulty": "Hard",
+    "level": ["Senior", "Lead"],
+    "question": "How would you design a URL shortening service like bit.ly?",
+    "model_answer": "I would approach this as a system design problem with these components: (1) API layer — POST /shorten accepts a long URL and returns a short code; GET /{code} redirects. (2) Encoding — use Base62 encoding on an auto-incremented ID or a hash (MD5/SHA256 truncated) to generate a 6–8 char code. (3) Storage — a relational DB (Postgres) or key-value store (Redis + DynamoDB) mapping short code to original URL. (4) Scalability — cache hot URLs in Redis, use CDN for redirect latency, shard DB by hash range. (5) Analytics — async write to a stream (Kafka) for click counting without slowing the redirect path.",
+    "tips": ["Always clarify scale assumptions first (reads/sec, storage needs).", "Mention trade-offs between approaches.", "Don't forget expiry, custom aliases, and abuse prevention."],
+    "tags": ["system design", "scalability", "databases"]
+  },
+  {
+    "id": "tech_003",
+    "category": "Technical",
+    "role": "Software Engineer",
+    "difficulty": "Easy",
+    "level": ["Fresher", "Junior"],
+    "question": "What is the difference between == and === in JavaScript?",
+    "model_answer": "== is the loose equality operator — it performs type coercion before comparing. So '5' == 5 returns true because the string '5' is coerced to number 5. === is the strict equality operator — it compares both value and type without coercion. So '5' === 5 returns false. Best practice: always use === to avoid unexpected behavior from implicit type conversion.",
+    "tips": ["Give a concrete example to make the answer memorable.", "Mention that this is why strict mode and linting rules enforce ===.", "Show you understand the pitfalls of type coercion."],
+    "tags": ["javascript", "types", "fundamentals"]
+  },
+  {
+    "id": "tech_004",
+    "category": "Technical",
+    "role": "Backend Engineer",
+    "difficulty": "Medium",
+    "level": ["Mid-level", "Senior"],
+    "question": "What is the difference between SQL and NoSQL databases? When would you choose one over the other?",
+    "model_answer": "SQL databases (e.g., PostgreSQL, MySQL) are relational — data is organized into tables with a fixed schema, and relationships are enforced via foreign keys. They excel at complex queries, ACID transactions, and structured data. NoSQL databases (e.g., MongoDB, DynamoDB, Cassandra) are schema-flexible and optimized for horizontal scaling, high write throughput, or specific access patterns. Choose SQL when: data has complex relationships, you need strong consistency, your query patterns are varied. Choose NoSQL when: you need to scale horizontally, your data is semi-structured or rapidly evolving, or you have a single dominant access pattern (e.g., key-value lookups).",
+    "tips": ["Don't say 'NoSQL is faster' — it depends on use case.", "Mention CAP theorem if targeting senior roles.", "Reference a real project if you have experience with both."],
+    "tags": ["databases", "sql", "nosql", "backend"]
+  },
+  {
+    "id": "tech_005",
+    "category": "Technical",
+    "role": "Frontend Engineer",
+    "difficulty": "Medium",
+    "level": ["Junior", "Mid-level"],
+    "question": "Explain the concept of the virtual DOM in React and why it matters.",
+    "model_answer": "The virtual DOM is a lightweight in-memory representation of the real DOM. When state or props change, React creates a new virtual DOM tree and diffs it against the previous one using a reconciliation algorithm. Only the nodes that actually changed are updated in the real DOM — a process called 'patching'. This matters because direct DOM manipulation is expensive; batching updates via the virtual DOM minimizes reflows and repaints, leading to better performance in dynamic UIs.",
+    "tips": ["Explain the 'diffing' step clearly — interviewers love to probe here.", "Mention React Fiber as the modern reconciler if targeting senior level.", "Connect to performance: why this matters in practice for large component trees."],
+    "tags": ["react", "frontend", "dom", "performance"]
+  },
+  {
+    "id": "tech_006",
+    "category": "Technical",
+    "role": "Data Engineer",
+    "difficulty": "Medium",
+    "level": ["Mid-level", "Senior"],
+    "question": "What is the difference between batch processing and stream processing? Give examples of each.",
+    "model_answer": "Batch processing processes large volumes of data collected over a period of time, all at once — e.g., running a nightly ETL job to aggregate the previous day's sales. Tools: Apache Spark, Hadoop. Stream processing processes data continuously as it arrives, with very low latency — e.g., fraud detection on credit card transactions in real time. Tools: Apache Kafka + Flink, Spark Streaming. The choice depends on latency requirements: if near-real-time decisions are needed, choose streaming; if periodic reports suffice, batching is simpler and cheaper.",
+    "tips": ["Mention latency trade-offs explicitly.", "Bring up lambda architecture if you want to show depth.", "Tie to a tool you have actually used."],
+    "tags": ["data engineering", "streaming", "batch", "etl"]
+  },
+  {
+    "id": "behav_001",
+    "category": "Behavioral",
+    "role": "All",
+    "difficulty": "Medium",
+    "level": ["Fresher", "Junior", "Mid-level", "Senior", "Lead"],
+    "question": "Tell me about a time you had a conflict with a teammate. How did you handle it?",
+    "model_answer": "Situation: During a sprint at my previous job, a teammate and I disagreed about the database schema design — he preferred a denormalized structure for speed; I was concerned about data integrity and maintainability. Task: We needed to finalize the schema within 2 days to unblock the rest of the team. Action: Instead of pushing my view in Slack, I scheduled a 30-minute call to walk through both approaches with concrete examples. I acknowledged his performance concerns were valid and proposed a hybrid: normalized core with one strategic denormalized table for the hot read path. Result: The team adopted the hybrid approach, the feature shipped on time, and the schema has held up without data issues for 8 months. The relationship with my teammate improved — we now often pair on design decisions.",
+    "tips": ["Never badmouth the other person.", "Show that you resolved it collaboratively, not by 'winning'.", "End with what you learned or the positive outcome for the team."],
+    "tags": ["conflict resolution", "teamwork", "communication", "STAR"]
+  },
+  {
+    "id": "behav_002",
+    "category": "Behavioral",
+    "role": "All",
+    "difficulty": "Medium",
+    "level": ["Junior", "Mid-level", "Senior", "Lead"],
+    "question": "Describe a situation where you had to meet a tight deadline. What did you do?",
+    "model_answer": "Situation: Three days before a major product launch, we discovered a critical performance bug — API response times were spiking to 8 seconds under load. Task: The launch could not be delayed, and I was the lead on the backend team. Action: I immediately triaged with monitoring tools and identified N+1 queries as the root cause. I prioritized the top 3 endpoints by traffic, added eager loading and a Redis cache layer. I also coordinated with the frontend team to add skeleton loaders so the UX felt acceptable even at slightly higher latency for edge cases. Result: We brought response times down from 8s to under 400ms on all critical paths. The launch happened on schedule and received positive feedback. Post-launch, I wrote a query review checklist to prevent recurrence.",
+    "tips": ["Show structured thinking under pressure — prioritization matters.", "Quantify the improvement wherever possible.", "Mention what you did to prevent the same issue in the future."],
+    "tags": ["deadline", "pressure", "problem-solving", "STAR"]
+  },
+  {
+    "id": "behav_003",
+    "category": "Behavioral",
+    "role": "All",
+    "difficulty": "Easy",
+    "level": ["Fresher", "Junior"],
+    "question": "Tell me about a project you're most proud of.",
+    "model_answer": "I'm most proud of a final-year capstone project where I built a real-time collaborative code editor — similar to a lightweight VS Code Live Share. Situation: Our team had 4 people and 8 weeks. Task: I led the backend and real-time sync layer. Action: I used Node.js with Socket.IO for real-time communication and operational transformation (OT) for conflict resolution when two users edited the same line simultaneously. I also set up a CI/CD pipeline on GitHub Actions. Result: The project demo'd flawlessly, earned the top grade in the cohort, and two professors asked if they could use it in future courses. More importantly, I learned how to research and implement an algorithm (OT) that wasn't taught in class.",
+    "tips": ["Pick a project that shows technical depth AND personal growth.", "Mention your specific contribution, not just 'we did X'.", "Show enthusiasm — this question is partly a vibe check."],
+    "tags": ["projects", "achievement", "STAR"]
+  },
+  {
+    "id": "behav_004",
+    "category": "Behavioral",
+    "role": "All",
+    "difficulty": "Medium",
+    "level": ["Mid-level", "Senior", "Lead"],
+    "question": "Give an example of a time you influenced a technical decision without having authority.",
+    "model_answer": "Situation: Our team was about to adopt a new microservices architecture without a proper service mesh. I was a mid-level engineer, not the tech lead. Task: I believed the lack of observability and traffic control would cause serious production issues. Action: I spent two evenings building a proof-of-concept with Istio on a local cluster, documenting the before/after on metrics like tracing and canary deployment ease. I presented this at the next architecture review — not as a critique but as 'here's what we gain.' I framed the cost (learning curve) against the risk (debugging distributed failures blind). Result: The tech lead and architect agreed to include Istio. I led the integration over 3 sprints, and it has since saved us several hours of debugging time on at least two production incidents.",
+    "tips": ["Use data and demos, not just opinions.", "Acknowledge the cost of your proposal — shows maturity.", "Show that you respected the decision-making structure while still advocating."],
+    "tags": ["influence", "leadership", "technical decision", "STAR"]
+  },
+  {
+    "id": "hr_001",
+    "category": "HR",
+    "role": "All",
+    "difficulty": "Easy",
+    "level": ["Fresher", "Junior", "Mid-level", "Senior", "Lead"],
+    "question": "Why do you want to work here?",
+    "model_answer": "I'm drawn to this company for three reasons. First, the engineering culture — from your engineering blog posts and tech talks, it's clear that the team values code quality and long-term maintainability over shipping fast and breaking things. Second, the problem domain genuinely interests me: [specific domain] is a space I've been following and learning about on my own. Third, the growth trajectory — the role spans both [area A] and [area B], which aligns with my goal to become a well-rounded [Senior/Staff] engineer over the next 2–3 years.",
+    "tips": ["Do real research — name a specific blog post, product, or initiative.", "Connect the company's mission to your personal interests.", "Avoid generic answers like 'great culture and growth opportunities' without specifics."],
+    "tags": ["motivation", "culture fit", "HR"]
+  },
+  {
+    "id": "hr_002",
+    "category": "HR",
+    "role": "All",
+    "difficulty": "Medium",
+    "level": ["Fresher", "Junior", "Mid-level", "Senior", "Lead"],
+    "question": "What is your biggest weakness?",
+    "model_answer": "My biggest weakness has been difficulty delegating — early in my career I often took on too much myself because I felt responsible for the outcome. I've been actively working on this: in my last role, I deliberately assigned ownership of a key module to a junior engineer and focused on being a resource rather than doing the work myself. It was uncomfortable at first, but the module shipped well and the junior engineer grew noticeably. I now see delegation as a multiplier, not a risk.",
+    "tips": ["Pick a real weakness — interviewers can tell when it's fake.", "Show that you're actively working on it.", "Choose something that won't disqualify you for the specific role."],
+    "tags": ["self-awareness", "growth", "HR"]
+  },
+  {
+    "id": "hr_003",
+    "category": "HR",
+    "role": "All",
+    "difficulty": "Easy",
+    "level": ["Fresher", "Junior", "Mid-level", "Senior", "Lead"],
+    "question": "Where do you see yourself in 5 years?",
+    "model_answer": "In 5 years, I see myself as a Senior [or Staff] engineer who has deep expertise in [your target domain] and can architect solutions end-to-end. I'd like to take on more mentorship responsibilities and contribute to technical decisions that shape the product. I'm not rigidly fixed on a specific title — I care more about impact, influence, and continuing to grow technically. Joining this team feels like a strong step in that direction given the scale of problems you're solving.",
+    "tips": ["Show ambition without being unrealistic.", "Tie your growth to the company's growth.", "It's OK to say you're unsure about IC vs. management — that's honest."],
+    "tags": ["career goals", "ambition", "HR"]
+  },
+  {
+    "id": "sys_001",
+    "category": "Technical",
+    "role": "Backend Engineer",
+    "difficulty": "Hard",
+    "level": ["Senior", "Lead"],
+    "question": "How would you design a notification system that needs to send millions of notifications per day across email, SMS, and push?",
+    "model_answer": "I'd design this as an async, event-driven pipeline: (1) Producers — services publish notification events (type, recipient, payload) to a message queue (Kafka or SQS). (2) Dispatcher — a stateless service consumes events, looks up user preferences (opt-in/out, channel preference) from a NoSQL store, and routes to channel workers. (3) Channel workers — separate workers for email (via SendGrid), SMS (via Twilio), and push (via FCM/APNs), each with retry logic and dead-letter queues. (4) Rate limiting — per-provider throttling to stay within API limits. (5) Deduplication — use an idempotency key to prevent duplicate sends on retry. (6) Observability — track delivery status, bounce rates, and latency in a time-series DB (e.g., InfluxDB). This design is horizontally scalable and channel-independent — adding a new channel means adding a new worker without touching the core pipeline.",
+    "tips": ["Start with requirements: scale, latency, retry guarantees.", "Always mention idempotency for systems that involve money/comms.", "Draw the pipeline as a mental map before answering."],
+    "tags": ["system design", "notifications", "messaging", "scalability"]
+  },
+  {
+    "id": "coding_001",
+    "category": "Technical",
+    "role": "Software Engineer",
+    "difficulty": "Medium",
+    "level": ["Junior", "Mid-level"],
+    "question": "How do you find the two numbers in an array that sum to a target value? What is the optimal time complexity?",
+    "model_answer": "The naive approach is two nested loops — O(n²) time. The optimal solution uses a hash map in a single pass — O(n) time and O(n) space. For each number x, compute complement = target - x. If complement is already in the map, you've found the pair. Otherwise, store x in the map and continue. Example: nums=[2,7,11,15], target=9. At index 0, complement=7, not in map, store {2:0}. At index 1, complement=2, found at index 0. Return [0,1].",
+    "tips": ["Always state the naive solution first, then optimize — shows structured thinking.", "Mention the space-time trade-off explicitly.", "Edge cases to consider: duplicates, negative numbers, no solution."],
+    "tags": ["algorithms", "hash map", "arrays", "two-sum"]
+  },
+  {
+    "id": "leader_001",
+    "category": "Behavioral",
+    "role": "Lead",
+    "difficulty": "Hard",
+    "level": ["Lead"],
+    "question": "How do you handle a situation where a high-performing engineer on your team is consistently difficult to work with?",
+    "model_answer": "Situation: I had a senior engineer who delivered excellent code but frequently dismissed junior engineers' ideas in meetings, creating a chilling effect on team participation. Task: As the lead, I needed to address this without losing a high performer or demotivating the rest of the team. Action: I first gathered specific observations — not hearsay. I then had a candid 1:1, acknowledging his technical contributions and explaining the specific impact of his behavior on team dynamics with concrete examples. I framed it as a career conversation: the skills that get you to senior (individual output) are different from the skills that make you a staff engineer (team amplification). I also set a clear expectation: participation quality in design reviews would be part of his next review cycle. Result: Over 6 weeks, his behavior improved markedly. Two junior engineers specifically thanked me for the change. He later told me it was feedback he needed to hear and hadn't received before.",
+    "tips": ["Lead with observations, not judgments.", "Frame behavior feedback as a career growth opportunity.", "Show you balanced team health with individual retention."],
+    "tags": ["leadership", "people management", "conflict", "STAR"]
+  },
+  {
+    "id": "star_framework",
+    "category": "Framework",
+    "role": "All",
+    "difficulty": "Easy",
+    "level": ["Fresher", "Junior", "Mid-level", "Senior", "Lead"],
+    "question": "STAR Method Framework",
+    "model_answer": "STAR stands for: Situation — Set the scene. What was the context? Keep it brief. Task — What was your specific responsibility or challenge? Action — What did YOU do? (Use 'I', not 'we'.) Be specific about your individual contribution. Result — What happened? Quantify if possible (time saved, % improvement, revenue impact). Pro tips: Keep Situation+Task to 20% of your answer. Spend 60% on Action. End strong on Result — don't trail off. Always use past tense for past experiences.",
+    "tips": ["Practice out loud — STAR answers that sound good in your head often ramble when spoken.", "Prepare 5–7 core STAR stories that can flex to answer different question variants.", "Customize the Result emphasis based on company values (speed, quality, customer impact)."],
+    "tags": ["STAR", "framework", "behavioral", "technique"]
+  }
+]

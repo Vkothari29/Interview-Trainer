@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% block title %}Mock Interview — Interview Trainer{% endblock %}
+
+{% block content %}
+<!-- Progress bar -->
+<div class="interview-header mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <span class="progress-label">
+      <i class="bi bi-question-circle me-1"></i>
+      Question <span id="qNum">{{ current_idx + 1 }}</span> of {{ total }}
+    </span>
+    <span class="text-muted small">
+      {{ profile.name }} &nbsp;·&nbsp; {{ profile.level }} {{ profile.role }}
+    </span>
+  </div>
+  <div class="progress interview-progress">
+    <div class="progress-bar" id="progressBar"
+         style="width: {{ ((current_idx + 1) / total * 100)|int }}%"></div>
+  </div>
+</div>
+
+<!-- Main interview area -->
+<div class="row g-4">
+  <!-- Left: chat panel -->
+  <div class="col-12 col-lg-8">
+
+    <!-- Chat history (previous Q&A) -->
+    <div id="chatHistory">
+      {% for pair in qa_pairs %}
+        <div class="bubble-coach mb-3">
+          <div class="bubble-label">Coach</div>
+          <p class="mb-1 fw-semibold">{{ pair.question }}</p>
+          {% if pair.get('is_followup') %}
+          <span class="badge bg-warning text-dark rounded-pill small ms-1">Follow-up</span>
+          {% endif %}
+        </div>
+        <div class="bubble-user mb-3">
+          <div class="bubble-label text-end">You</div>
+          <p class="mb-0">{{ pair.answer }}</p>
+        </div>
+        <!-- Inline score badge -->
+        <div class="score-inline mb-4">
+          {% set s = pair.score %}
+          {% set sc = s.overall %}
+          <span class="score-pill {% if sc >= 75 %}score-good{% elif sc >= 55 %}score-mid{% else %}score-low{% endif %}">
+            {{ sc }}/100
+          </span>
+          <span class="text-muted small ms-2">{{ s.strengths[0] if s.strengths }}</span>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Current question bubble -->
+    <div class="bubble-coach" id="currentQBubble">
+      <div class="bubble-label">Coach</div>
+      <div class="d-flex align-items-start gap-2 mb-1">
+        <span class="badge-cat badge-cat-{{ current_q.category | lower }}">{{ current_q.category }}</span>
+        <span class="badge-diff badge-diff-{{ current_q.difficulty | lower }}">{{ current_q.difficulty }}</span>
+      </div>
+      <p class="mb-0 fw-semibold lh-lg" id="questionText">{{ current_q.question }}</p>
+    </div>
+
+    <!-- Answer form -->
+    <div class="answer-panel mt-3" id="answerPanel">
+      <textarea id="answerInput" class="form-control answer-textarea"
+                placeholder="Type your answer here. Be as detailed as you would in a real interview…"
+                rows="5"></textarea>
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-primary-grad flex-grow-1" id="submitBtn" onclick="submitAnswer()">
+          <span id="submitBtnText"><i class="bi bi-send-fill me-2"></i>Submit Answer</span>
+          <span id="submitSpinner" class="d-none"><span class="spinner-border spinner-border-sm me-2"></span>Evaluating…</span>
+        </button>
+        <button class="btn btn-outline-secondary" onclick="skipAnswer()">Skip</button>
+      </div>
+    </div>
+
+    <!-- Feedback panel (hidden initially, shown after submit) -->
+    <div id="feedbackPanel" class="feedback-panel mt-4 d-none"></div>
+
+    <!-- Done panel -->
+    <div id="donePanel" class="done-panel mt-4 d-none text-center">
+      <div class="done-icon">🎉</div>
+      <h3 class="fw-bold mt-3">Interview Complete!</h3>
+      <p class="text-muted">All questions answered. Generating your results…</p>
+      <div class="spinner-border text-primary mt-2"></div>
+    </div>
+  </div>
+
+  <!-- Right: sidebar -->
+  <div class="col-12 col-lg-4">
+    <div class="card-panel sticky-top" style="top: 80px;">
+      <div class="panel-label">Session Progress</div>
+      <div class="d-flex justify-content-between mb-1 small text-muted">
+        <span>Answered</span><span id="answeredCount">{{ qa_pairs | length }} / {{ total }}</span>
+      </div>
+      <div class="progress mb-3" style="height:6px;">
+        <div class="progress-bar" id="sideProgressBar"
+             style="width: {{ (qa_pairs|length / total * 100)|int }}%"></div>
+      </div>
+
+      <div class="panel-label mt-3">Question Map</div>
+      <div class="q-map" id="qMap">
+        {% for i in range(total) %}
+        <div class="q-dot {% if i < qa_pairs|length %}q-dot-done{% elif i == current_idx %}q-dot-active{% endif %}"
+             title="Q{{ i+1 }}">{{ i+1 }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="panel-label mt-3">Tips</div>
+      <ul class="small text-muted ps-3 mb-0">
+        <li class="mb-1">Use <strong>STAR</strong> for behavioral questions</li>
+        <li class="mb-1">Quantify results where possible</li>
+        <li class="mb-1">It's OK to take a moment to think</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const ANSWER_URL = "{{ url_for('main.submit_answer') }}";
+const RESULTS_URL = "{{ url_for('main.results') }}";
+let currentIdx = {{ current_idx }};
+let total = {{ total }};
+
+async function submitAnswer(skipText) {
+  const answer = skipText || document.getElementById('answerInput').value.trim();
+  if (!answer) { alert('Please type an answer before submitting.'); return; }
+
+  // Show spinner
+  document.getElementById('submitBtnText').classList.add('d-none');
+  document.getElementById('submitSpinner').classList.remove('d-none');
+  document.getElementById('submitBtn').disabled = true;
+  const ta = document.getElementById('answerInput');
+  if (ta) ta.disabled = true;
+
+  try {
+    const res = await fetch(ANSWER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answer })
+    });
+    const data = await res.json();
+    if (data.error) { alert(data.error); return; }
+
+    handleResponse(answer, data);
+  } catch(e) {
+    alert('Network error. Please try again.');
+  } finally {
+    document.getElementById('submitBtnText').classList.remove('d-none');
+    document.getElementById('submitSpinner').classList.add('d-none');
+    document.getElementById('submitBtn').disabled = false;
+    const ta2 = document.getElementById('answerInput');
+    if (ta2) ta2.disabled = false;
+  }
+}
+
+function skipAnswer() { submitAnswer('I will skip this question.'); }
+
+function handleResponse(answer, data) {
+  const feedback = data.feedback;
+  const sc = feedback.overall;
+
+  // Archive the question that was just answered BEFORE the next one replaces it.
+  const hist = document.getElementById('chatHistory');
+  if (!data.followup) {
+    const cqBubble = document.getElementById('currentQBubble').cloneNode(true);
+    cqBubble.removeAttribute('id');
+    cqBubble.querySelectorAll('.badge.bg-warning').forEach(b => b.remove());
+    cqBubble.classList.add('animate-in');
+    hist.insertAdjacentElement('beforeend', cqBubble);
+  }
+
+  // Append user bubble to chat history
+  const userBubble = `
+    <div class="bubble-user mb-3 animate-in">
+      <div class="bubble-label text-end">You</div>
+      <p class="mb-0">${escHtml(answer)}</p>
+    </div>
+    <div class="score-inline mb-3 animate-in">
+      <span class="score-pill ${sc >= 75 ? 'score-good' : sc >= 55 ? 'score-mid' : 'score-low'}">${sc}/100</span>
+      <span class="text-muted small ms-2">${(feedback.strengths && feedback.strengths[0]) || ''}</span>
+    </div>`;
+  hist.insertAdjacentHTML('beforeend', userBubble);
+
+  // Show feedback panel
+  const fp = document.getElementById('feedbackPanel');
+  fp.classList.remove('d-none');
+  fp.innerHTML = buildFeedbackHTML(feedback);
+
+  if (data.is_done) {
+    // Session finished — redirect to results
+    document.getElementById('answerPanel').classList.add('d-none');
+    document.getElementById('currentQBubble').classList.add('d-none');
+    document.getElementById('feedbackPanel').classList.add('d-none');
+    document.getElementById('donePanel').classList.remove('d-none');
+    setTimeout(() => { window.location.href = RESULTS_URL; }, 2000);
+    return;
+  }
+
+  if (data.followup) {
+    // Ask follow-up in the same question bubble
+    const qText = document.getElementById('questionText');
+    if (qText) qText.innerText = data.followup;
+    const qBubble = document.getElementById('currentQBubble');
+    if (qBubble && !qBubble.querySelector('.badge.bg-warning')) {
+      qBubble.insertAdjacentHTML('afterbegin',
+        '<span class="badge bg-warning text-dark rounded-pill small me-2">Follow-up</span>');
+    }
+  } else {
+    // Advance to next question
+    currentIdx = data.current_index;
+    const nq = data.next_question;
+    document.getElementById('questionText').innerText = nq.question;
+    document.getElementById('qNum').innerText = currentIdx + 1;
+
+    // The answered question was already archived above.
+    // Refresh feedback panel position
+    fp.classList.add('d-none');
+    fp.innerHTML = '';
+  }
+
+  // Reset textarea
+  const ta = document.getElementById('answerInput');
+  ta.value = '';
+  ta.disabled = false;
+
+  // Update progress
+  const pct = Math.round((currentIdx) / total * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('sideProgressBar').style.width = pct + '%';
+  document.getElementById('answeredCount').textContent = `${currentIdx} / ${total}`;
+  updateQMap(currentIdx);
+
+  // Scroll to bottom
+  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
+function buildFeedbackHTML(f) {
+  const scoreColor = f.overall >= 75 ? 'success' : f.overall >= 55 ? 'warning' : 'danger';
+  const scores = [
+    ['Relevance', f.relevance],
+    ['Structure', f.structure_clarity],
+    ['Depth', f.depth_accuracy],
+    ['STAR', f.star_usage],
+    ['Confidence', f.confidence_indicators],
+  ];
+  const scoreHTML = scores.map(([label, val]) => `
+    <div class="score-dim">
+      <div class="score-dim-label">${label}</div>
+      <div class="score-dim-bar-track"><div class="score-dim-bar-fill" style="width:${val*10}%"></div></div>
+      <div class="score-dim-val">${val}/10</div>
+    </div>`).join('');
+
+  return `
+    <div class="feedback-card animate-in">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <span class="score-pill score-${scoreColor === 'success' ? 'good' : scoreColor === 'warning' ? 'mid' : 'low'}">${f.overall}/100</span>
+        <span class="panel-label mb-0">Answer Feedback</span>
+      </div>
+      <div class="score-dims mb-3">${scoreHTML}</div>
+      <div class="row g-3 mb-3">
+        <div class="col-6">
+          <div class="panel-label text-success">Strengths</div>
+          <ul class="small ps-3 mb-0">${(f.strengths||[]).map(s=>`<li>${escHtml(s)}</li>`).join('')}</ul>
+        </div>
+        <div class="col-6">
+          <div class="panel-label text-warning">Improve</div>
+          <ul class="small ps-3 mb-0">${(f.improvements||[]).map(s=>`<li>${escHtml(s)}</li>`).join('')}</ul>
+        </div>
+      </div>
+      <div class="tip-box"><i class="bi bi-lightbulb-fill me-2 text-warning"></i>${escHtml(f.model_tip||'')}</div>
+      ${f.improved_answer_snippet ? `<div class="mt-2 small text-muted fst-italic">Better phrasing: "${escHtml(f.improved_answer_snippet)}"</div>` : ''}
+    </div>`;
+}
+
+function updateQMap(doneCount) {
+  const dots = document.querySelectorAll('#qMap .q-dot');
+  dots.forEach((d, i) => {
+    d.classList.remove('q-dot-done','q-dot-active');
+    if (i < doneCount) d.classList.add('q-dot-done');
+    else if (i === doneCount) d.classList.add('q-dot-active');
+  });
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Ctrl+Enter to submit
+document.getElementById('answerInput').addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key === 'Enter') submitAnswer();
+});
+</script>
+{% endblock %}

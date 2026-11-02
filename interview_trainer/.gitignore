@@ -1,0 +1,7 @@
+# Local secrets and runtime data
+.env
+__pycache__/
+*.pyc
+data/chroma_db/
+data/flask_sessions/
+app/static/uploads/
